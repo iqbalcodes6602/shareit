@@ -5,19 +5,39 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export const uploadImage = async (request, response) => {
+    console.log(request.body);
+    const { password } = request.body;
     const fileObj = {
-        path: request.file.path,
-        name: request.file.originalname,
-    }
-    
+      path: request.file.path,
+      name: request.file.originalname,
+      password: await bcrypt.hash(password, 10), // Hash the password
+    };
+  
     try {
-        const file = await File.create(fileObj);
-        response.status(200).json({ path: `http://localhost:${process.env.PORT}/file/${file._id}`});
+      const file = await File.create(fileObj);
+      response.status(200).json({ path: `http://localhost:${process.env.PORT}/file/${file._id}` });
     } catch (error) {
-        console.error(error.message);
-        response.status(500).json({ error: error.message });
+      console.error(error.message);
+      response.status(500).json({ error: error.message });
     }
-}
+  };
+
+  export const validateFilePassword = async (request, response) => {
+    const { password } = request.body;
+  
+    try {
+      const file = await File.findById(request.params.fileId);
+  
+      const isMatch = await bcrypt.compare(password, file.password);
+      if (!isMatch) return response.status(401).json({ success: false, message: "Invalid password" });
+  
+      response.status(200).json({ success: true, downloadLink: `http://localhost:${process.env.PORT}/file/${file._id}` });
+    } catch (error) {
+      console.error(error.message);
+      response.status(500).json({ error: error.message });
+    }
+  };
+  
 
 export const getImage = async (request, response) => {
     try {   
