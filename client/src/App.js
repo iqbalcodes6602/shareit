@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import "./App.css";
 import { uploadFile, getFiles, validatePassword } from "./service/api";
 
+const API_URI = process.env.REACT_APP_API_URI;
+
 function App() {
   const [file, setFile] = useState("");
   const [password, setPassword] = useState("");
@@ -13,11 +15,12 @@ function App() {
 
   const fileInputRef = useRef();
 
+  const fetchFiles = async () => {
+    const response = await getFiles();
+    setFiles(response || []);
+  };
+  
   useEffect(() => {
-    const fetchFiles = async () => {
-      const response = await getFiles();
-      setFiles(response || []);
-    };
     fetchFiles();
   }, []);
 
@@ -36,6 +39,7 @@ function App() {
     if (response) alert("File uploaded successfully!");
     setFile("");
     setPassword("");
+    fetchFiles();
   };
 
   const handleFileClick = (file) => {
@@ -49,7 +53,7 @@ function App() {
     if (response && response.success) {
       // window.location.href = response.downloadLink;
       console.log("Download link: ", response.encryptedFileName);
-      window.location.href = `http://localhost:8000/file/${response.encryptedFileName}`;
+      window.location.href = `${API_URI}/file/${response.encryptedFileName}`;
     } else {
       setError("Incorrect password!");
     }
