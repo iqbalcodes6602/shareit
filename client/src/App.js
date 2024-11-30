@@ -45,7 +45,9 @@ function App() {
   const handleDownload = async () => {
     const response = await validatePassword(selectedFile._id, inputPassword);
     if (response && response.success) {
-      window.location.href = response.downloadLink;
+      // window.location.href = response.downloadLink;
+      console.log("Download link: ", response.encryptedFileName);
+      window.location.href = `http://localhost:8000/file/${response.encryptedFileName}`;
     } else {
       setError("Incorrect password!");
     }

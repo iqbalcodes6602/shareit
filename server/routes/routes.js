@@ -11,7 +11,7 @@ const router = express.Router();
 
 
 router.post('/upload', upload.single('file'), uploadImage);
-router.get('/file/:fileId', getImage);
+router.get('/file/:encryptedFileName', getImage);
 router.post('/validate-password/:fileId', validateFilePassword);
 
 router.get('/files', async (req, res) => {

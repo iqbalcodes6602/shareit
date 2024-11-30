@@ -31,7 +31,7 @@ export const uploadImage = async (request, response) => {
       const isMatch = await bcrypt.compare(password, file.password);
       if (!isMatch) return response.status(401).json({ success: false, message: "Invalid password" });
   
-      response.status(200).json({ success: true, downloadLink: `http://localhost:${process.env.PORT}/file/${file._id}` });
+      response.status(200).json({ success: true, encryptedFileName: file.path.split('/')[1] });
     } catch (error) {
       console.error(error.message);
       response.status(500).json({ error: error.message });
@@ -39,14 +39,20 @@ export const uploadImage = async (request, response) => {
   };
   
 
-export const getImage = async (request, response) => {
-    try {   
-        const file = await File.findById(request.params.fileId);
+  export const getImage = async (request, response) => {
+    try {
+        // Use findOne to get a single document
+        const file = await File.findOne({ path: 'uploads/' + request.params.encryptedFileName });
+        console.log(file);
         
+        if (!file) {
+            return response.status(404).json({ msg: 'File not found' });
+        }
+
         file.downloadCount++;
-
+      
         await file.save();
-
+        
         response.download(file.path, file.name);
     } catch (error) {
         console.error(error.message);
