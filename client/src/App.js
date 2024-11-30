@@ -9,6 +9,7 @@ function App() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [inputPassword, setInputPassword] = useState("");
   const [error, setError] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fileInputRef = useRef();
 
@@ -40,6 +41,7 @@ function App() {
   const handleFileClick = (file) => {
     setSelectedFile(file);
     setError("");
+    setIsModalOpen(true); // Open modal on file click
   };
 
   const handleDownload = async () => {
@@ -54,50 +56,78 @@ function App() {
     setInputPassword("");
   };
 
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedFile(null);
+    setError("");
+  };
+
   return (
     <div className="container">
       <div className="wrapper">
-        <h1>Simple file sharing!</h1>
-        <p>Upload and share the download link.</p>
+        <h1 style={{marginBottom: '0px'}}>ShareIt</h1>
+        <h1>Simple File Sharing</h1>
+        <p>Upload and share the download link securely with a password.</p>
 
         {/* Upload Form */}
-        <input
-          type="file"
-          ref={fileInputRef}
-          style={{ display: "none" }}
-          onChange={(e) => setFile(e.target.files[0])}
-        />
-        <button onClick={() => fileInputRef.current.click()}>Select File</button>
-        <input
-          type="password"
-          placeholder="Enter a password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button onClick={handleFileUpload}>Upload</button>
+        <div className="upload-form">
+          <div style={{display: 'flex'}}>
+            <input
+              type="password"
+              placeholder="Enter a password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="password-input"
+            />
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              onChange={(e) => setFile(e.target.files[0])}
+            />
+            <button className="select-file-btn" onClick={() => fileInputRef.current.click()} style={{marginLeft: '10px'}}>
+              Select File
+            </button>
+          </div>
+          <button className="upload-btn" onClick={handleFileUpload}>
+            Upload
+          </button>
+        </div>
 
         {/* Display Files */}
-        <ul>
+        <ul className="file-list">
           {files.map((file) => (
-            <li key={file._id}>
-              <span>{file.name}</span>
-              <button onClick={() => handleFileClick(file)}>Download</button>
+            <li key={file._id} className="file-item">
+              <span className="file-name">{file.name}</span>
+              <button className="download-btn" onClick={() => handleFileClick(file)}>
+                Download
+              </button>
             </li>
           ))}
         </ul>
 
-        {/* Password Dialog */}
-        {selectedFile && (
-          <div className="password-dialog">
-            <h3>Enter Password</h3>
-            <input
-              type="password"
-              placeholder="Password"
-              value={inputPassword}
-              onChange={(e) => setInputPassword(e.target.value)}
-            />
-            <button onClick={handleDownload}>Submit</button>
-            {error && <p style={{ color: "red" }}>{error}</p>}
+        {/* Modal for Password Entry */}
+        {isModalOpen && selectedFile && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <h3 style={{marginBottom: '10px'}}>Enter Password for {selectedFile.name}</h3>
+              <input
+                type="password"
+                placeholder="Password"
+                value={inputPassword}
+                onChange={(e) => setInputPassword(e.target.value)}
+                className="password-input"
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+                <button className="close-btn" onClick={closeModal}>
+                  Close
+                </button>
+                {error && <p className="error-message">{error}</p>}
+                <button className="submit-btn" onClick={handleDownload}>
+                  Submit
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
