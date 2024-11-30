@@ -85,6 +85,8 @@ p {
 }
 
 .file-list {
+  max-height: 50vh;
+  overflow: auto;
   list-style-type: none;
   width: 100%;
   padding: 0;
@@ -165,3 +167,4 @@ p {
     width: 90%;
   }
 }
+
