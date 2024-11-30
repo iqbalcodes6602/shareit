@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 import { uploadFile, getFiles, validatePassword } from "./service/api";
 
@@ -12,6 +12,8 @@ function App() {
   const [inputPassword, setInputPassword] = useState("");
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [progress, setProgress] = useState(0); // New state for upload progress
+  const [isUploading, setIsUploading] = useState(false); // State to track upload status
 
   const fileInputRef = useRef();
 
@@ -19,7 +21,7 @@ function App() {
     const response = await getFiles();
     setFiles(response || []);
   };
-  
+
   useEffect(() => {
     fetchFiles();
   }, []);
@@ -35,8 +37,16 @@ function App() {
     data.append("file", file);
     data.append("password", password);
 
-    const response = await uploadFile(data);
-    if (response) alert("File uploaded successfully!");
+    setIsUploading(true); // Set uploading status to true
+    setProgress(0); // Reset progress
+
+    const response = await uploadFile(data, setProgress);
+    setIsUploading(false); // Set uploading status to false
+
+    if (response) {
+      alert("File uploaded successfully!");
+    }
+
     setFile("");
     setPassword("");
     fetchFiles();
@@ -51,8 +61,6 @@ function App() {
   const handleDownload = async () => {
     const response = await validatePassword(selectedFile._id, inputPassword);
     if (response && response.success) {
-      // window.location.href = response.downloadLink;
-      console.log("Download link: ", response.encryptedFileName);
       window.location.href = `${API_URI}/file/${response.encryptedFileName}`;
     } else {
       setError("Incorrect password!");
@@ -69,13 +77,13 @@ function App() {
   return (
     <div className="container">
       <div className="wrapper">
-        <h1 style={{marginBottom: '0px'}}>ShareIt</h1>
+        <h1 style={{ marginBottom: "0px" }}>ShareIt</h1>
         <h1>Simple File Sharing</h1>
         <p>Upload and share the download link securely with a password.</p>
 
         {/* Upload Form */}
         <div className="upload-form">
-          <div style={{display: 'flex'}}>
+          <div style={{ display: "flex" }}>
             <input
               type="password"
               placeholder="Enter a password"
@@ -89,7 +97,11 @@ function App() {
               style={{ display: "none" }}
               onChange={(e) => setFile(e.target.files[0])}
             />
-            <button className="select-file-btn" onClick={() => fileInputRef.current.click()} style={{marginLeft: '10px'}}>
+            <button
+              className="select-file-btn"
+              onClick={() => fileInputRef.current.click()}
+              style={{ marginLeft: "10px" }}
+            >
               Select File
             </button>
           </div>
@@ -98,12 +110,25 @@ function App() {
           </button>
         </div>
 
+        {/* Progress Bar */}
+        {isUploading && (
+          <div className="progress-bar">
+            <div
+              className="progress"
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+        )}
+
         {/* Display Files */}
         <ul className="file-list">
           {files.map((file) => (
             <li key={file._id} className="file-item">
               <span className="file-name">{file.name}</span>
-              <button className="download-btn" onClick={() => handleFileClick(file)}>
+              <button
+                className="download-btn"
+                onClick={() => handleFileClick(file)}
+              >
                 Download
               </button>
             </li>
@@ -114,7 +139,9 @@ function App() {
         {isModalOpen && selectedFile && (
           <div className="modal-overlay">
             <div className="modal-content">
-              <h3 style={{marginBottom: '10px'}}>Enter Password for {selectedFile.name}</h3>
+              <h3 style={{ marginBottom: "10px" }}>
+                Enter Password for {selectedFile.name}
+              </h3>
               <input
                 type="password"
                 placeholder="Password"
@@ -122,7 +149,13 @@ function App() {
                 onChange={(e) => setInputPassword(e.target.value)}
                 className="password-input"
               />
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginTop: "10px",
+                }}
+              >
                 <button className="close-btn" onClick={closeModal}>
                   Close
                 </button>
