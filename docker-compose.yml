@@ -1,0 +1,45 @@
+services:
+  frontend:
+    container_name: frontend
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    expose:
+      - "3000"  # Expose port internally, not to the host
+    environment:
+      - REACT_APP_BACKEND_URL=/api
+
+  backend:
+    container_name: backend
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    expose:
+      - "8000"  # Expose port internally, not to the host
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/shareit
+      - PORT=8000
+    depends_on:
+      - mongo
+
+  proxy:
+    container_name: proxy
+    build:
+      context: ./proxy
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"  # Nginx exposed to host
+    depends_on:
+      - frontend
+      - backend
+
+  mongo:
+    container_name: mongo
+    image: mongo:5.0
+    expose:
+      - "27017"  # MongoDB port for internal use
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
